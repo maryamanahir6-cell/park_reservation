@@ -12,8 +12,8 @@ if (!isset($_SESSION['utilisateur_id'])) {
 
 $id_utilisateur = $_SESSION['utilisateur_id'];
 $id_place = $_POST['id_place'] ?? '';
-$heure_debut = $_POST['heure_debut'] ?? '';
-$heure_fin = $_POST['heure_fin'] ?? '';
+$heure_debut = str_replace('T', ' ', $_POST['heure_debut'] ?? '');
+$heure_fin   = str_replace('T', ' ', $_POST['heure_fin'] ?? '');
 
 if (empty($id_place) || empty($heure_debut) || empty($heure_fin)) {
     echo json_encode(["succes" => false, "message" => "Tous les champs sont obligatoires."]);

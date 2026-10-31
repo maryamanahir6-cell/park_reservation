@@ -1,10 +1,11 @@
 <?php
-require '../BD/bd.php'; // Inclusion de la connexion
+require '../BD/places_db.php';
 
-$stmt = $pdo->query("SELECT id, numero FROM places");
-$places = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Définition de l'en-tête et renvoi des données en JSON
 header("Content-Type: application/json; charset=UTF-8");
+
+// Exécution de la requête via la fonction du dossier BD
+$places = recupererPlacesAvecEtat($pdo);
+
+// Envoi de la réponse HTTP
 echo json_encode($places);
 ?>
