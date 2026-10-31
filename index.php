@@ -7,20 +7,32 @@ $nomUtilisateur = $_SESSION['identifiant'] ?? '';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestion du Parking en Temps Réel</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <h1> Système de Parking Intelligent - Temps Réel</h1>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <span class="brand-logo">P</span>
+                <div>
+                    <h1>Parking Intelligent</h1>
+                    <p>Réservation de places en temps réel</p>
+                </div>
+            </div>
+            <span class="live-chip"><i class="live-dot"></i> En direct</span>
+        </div>
+    </header>
 
-    <div class="layout-container">
-        <!-- Inclusion de la colonne gauche -->
+    <main class="layout-container">
+        <!-- Colonne gauche : connexion / espace client -->
         <?php include 'IHM/c_gauche.php'; ?>
 
-        <!-- Inclusion de la colonne droite -->
+        <!-- Colonne droite : plan du parking + pop-up de réservation -->
         <?php include 'IHM/c_droite.php'; ?>
-    </div>
+    </main>
 
     <script>
         // Injection de la variable d'état PHP vers le JS
