@@ -5,6 +5,7 @@
             <p class="muted">Sélectionnez une place disponible pour la réserver.</p>
         </div>
         <div class="stats-chip" id="parking-stats">—</div>
+        <!-- Affiche le nombre de places libres / occupées -->
     </div>
 
     <!-- Légende -->
@@ -14,7 +15,7 @@
         <li><span class="mini-pill mini-mine"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#16a34a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span> Ma réservation</li>
     </ul>
 
-    <!-- Plan : structure type "plan de cabine" pivotée à 90° -->
+    <!-- Plan  -->
     <div class="parking-wrap">
         <div id="parking-lot" class="parking-lot">
             <!-- Généré dynamiquement par AJAX -->
@@ -45,7 +46,7 @@
     </svg>
 </section>
 
-<!-- ============ POP-UP DE RÉSERVATION (fenêtre modale) ============ -->
+<!--  POP-UP DE RÉSERVATION (fenêtre modale) -->
 <div id="panel-reservation" class="modal-overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-reservation">
         <button type="button" class="modal-close" onclick="fermerReservation();" aria-label="Fermer">

@@ -3,8 +3,7 @@ var placeSelectionneeNumero = "";
 var derniereReponsePlaces = null;
 var timerFermeture = null;
 var reservationEnCours = false; // vrai dès que MON formulaire est soumis
-var libreALOuverture = false; // la place était libre quand j'ai ouvert le pop-up
-
+var timerDispo = null; // vérification périodique du créneau choisi
 var ICONE_CHECK =
   '<svg class="icone-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 
@@ -47,6 +46,9 @@ function initialiserRestrictions() {
   var inputFin = document.getElementById("res_heure_fin");
   if (!inputDebut || !inputFin) return;
 
+  inputDebut.addEventListener("input", verifierDisponibiliteCreneau);
+  inputFin.addEventListener("input", verifierDisponibiliteCreneau);
+
   inputDebut.addEventListener("change", function () {
     if (inputDebut.value) {
       inputFin.min = inputDebut.value;
@@ -54,7 +56,9 @@ function initialiserRestrictions() {
         inputFin.value = inputDebut.value;
       }
     }
+    verifierDisponibiliteCreneau();
   });
+  inputFin.addEventListener("change", verifierDisponibiliteCreneau);
 }
 
 /* ---------- Plan du parking ---------- */
@@ -64,7 +68,7 @@ function htmlVoiture() {
   return '<svg class="car" viewBox="0 0 60 110"><use href="#car-shape"/></svg>';
 }
 
-function htmlPlace(p, rang, derniere) {
+function htmlPlace(p, rang) {
   // rang 1-2 : rangées du haut (nez vers le haut) ; 3-4 : rangées du bas
   var position = rang <= 2 ? "haut" : "bas";
   var estOccupee = p.etat !== "Libre";
@@ -92,7 +96,6 @@ function htmlPlace(p, rang, derniere) {
     rang +
     " " +
     classe +
-    (derniere ? " derniere" : "") +
     '"' +
     ' data-id="' +
     esc(p.id) +
@@ -114,29 +117,58 @@ function htmlPlace(p, rang, derniere) {
   );
 }
 
-function verifierConflitLive(places) {
-  if (placeSelectionneeId === null) return;
-  // Ma propre réservation ne doit JAMAIS déclencher l'alerte "occupée par un autre"
-  if (reservationEnCours) return;
+function verifierDisponibiliteCreneau() {
   var overlay = document.getElementById("panel-reservation");
-  if (overlay.hidden) return;
+  if (!overlay || overlay.hidden || reservationEnCours) return;
 
-  var modal = overlay.querySelector(".modal");
-  var msgConflit = document.getElementById("msg-conflit-live");
-  var btn = document.getElementById("btn-soumettre-res");
+  var idPlace = document.getElementById("res_id_place").value;
+  var debut = document.getElementById("res_heure_debut").value;
+  var fin = document.getElementById("res_heure_fin").value;
+  if (!idPlace || !debut || !fin) return;
 
-  for (var i = 0; i < places.length; i++) {
-    var p = places[i];
-    if (String(p.id) !== String(placeSelectionneeId)) continue;
+  var xhr = new XMLHttpRequest();
+  xhr.open(
+    "GET",
+    "Traitement/verifier_disponibilite.php?id_place=" +
+      encodeURIComponent(idPlace) +
+      "&heure_debut=" +
+      encodeURIComponent(debut) +
+      "&heure_fin=" +
+      encodeURIComponent(fin) +
+      "&t=" +
+      new Date().getTime(),
+    true,
+  );
 
-    // Alerte uniquement si un AUTRE utilisateur prend la place pendant que le pop-up est ouvert
-    if (libreALOuverture && p.etat !== "Libre" && !p.mienne) {
-      modal.classList.add("alerte-conflit");
-      msgConflit.innerText =
-        "Attention ! Cette place vient d'être occupée à l'instant par un autre utilisateur.";
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState != 4 || xhr.status != 200) return;
+    if (overlay.hidden || reservationEnCours) return;
+    if (document.getElementById("res_id_place").value !== idPlace) return;
+
+    var r;
+    try {
+      r = JSON.parse(xhr.responseText);
+    } catch (e) {
+      return;
+    }
+
+    var modal = overlay.querySelector(".modal");
+    var msg = document.getElementById("msg-conflit-live");
+    var btn = document.getElementById("btn-soumettre-res");
+
+    if (r.disponible) {
+      modal.classList.remove("alerte-conflit");
+      msg.innerText = "";
+      btn.disabled = false;
+    } else {
+      if (!modal.classList.contains("alerte-conflit"))
+        modal.classList.add("alerte-conflit");
+      msg.innerText =
+        r.message || "Cette place n'est plus disponible sur ce créneau.";
       btn.disabled = true;
     }
-  }
+  };
+  xhr.send(null);
 }
 
 function chargerParking() {
@@ -159,27 +191,22 @@ function chargerParking() {
 
     var nb = places.length;
     var colonnes = Math.ceil(nb / 4);
-    var r = ["", "", "", ""],
-      couloir = "";
+    var html = "";
 
-    // Chaque colonne = 2 places en haut, le numéro au centre, 2 places en bas
     for (var k = 0; k < colonnes; k++) {
-      var derniere = k === colonnes - 1;
+      html += '<div class="parking-col">';
       for (var j = 0; j < 4; j++) {
         var p = places[4 * k + j];
-        r[j] += p
-          ? htmlPlace(p, j + 1, derniere)
-          : '<div class="slot slot-vide rang' +
-            (j + 1) +
-            (derniere ? " derniere" : "") +
-            '"></div>';
+        html += p
+          ? htmlPlace(p, j + 1)
+          : '<div class="slot slot-vide rang' + (j + 1) + '"></div>';
+        if (j === 1)
+          html += '<div class="lane-cell"><span>' + (k + 1) + "</span></div>";
       }
-      couloir += '<div class="lane-cell"><span>' + (k + 1) + "</span></div>";
+      html += "</div>";
     }
 
-    var lot = document.getElementById("parking-lot");
-    lot.style.setProperty("--cols", colonnes);
-    lot.innerHTML = r[0] + r[1] + couloir + r[2] + r[3];
+    document.getElementById("parking-lot").innerHTML = html;
 
     // Statistiques
     var libres = 0;
@@ -191,8 +218,6 @@ function chargerParking() {
       stats.innerHTML = "<b>" + libres + "</b> / " + nb + " disponibles";
       stats.className = "stats-chip" + (libres === 0 ? " stats-plein" : "");
     }
-
-    verifierConflitLive(places);
   };
   xhr.send(null);
 }
@@ -224,7 +249,6 @@ function selectionnerPlace(id, numero, etat, mienne) {
   placeSelectionneeId = id;
   placeSelectionneeNumero = numero;
   reservationEnCours = false;
-  libreALOuverture = etat === "Libre" && !mienne;
   clearTimeout(timerFermeture);
 
   // Valeurs par défaut : prochain quart d'heure, durée 1 h
@@ -257,10 +281,14 @@ function selectionnerPlace(id, numero, etat, mienne) {
   setTimeout(function () {
     inputDebut.focus();
   }, 50);
+  clearInterval(timerDispo);
+  timerDispo = setInterval(verifierDisponibiliteCreneau, 2000);
+  verifierDisponibiliteCreneau();
 }
 
 function fermerReservation() {
   clearTimeout(timerFermeture);
+  clearInterval(timerDispo);
   var overlay = document.getElementById("panel-reservation");
   if (!overlay || overlay.hidden) return;
   overlay.hidden = true;

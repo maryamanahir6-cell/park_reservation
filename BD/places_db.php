@@ -19,15 +19,15 @@ function recupererPlacesAvecEtat($pdo, $idUtilisateur = 0) {
                          AND r2.heure_fin > NOW()
                    ) AS mienne
             FROM places p
-            ORDER BY p.id";
+            ORDER BY p.id"; //select 1 returns true if the subquery returns any rows, otherwise false. 
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['u1' => (int)$idUtilisateur, 'u2' => (int)$idUtilisateur]);
-    $places = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $places = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère toutes les places avec leur état et si elles appartiennent à l'utilisateur
 
-    foreach ($places as &$p) {
+    foreach ($places as &$p) { // Convertit le champ 'mienne' (0 ou 1) en booléen
         $p['mienne'] = (bool)$p['mienne'];
     }
-    return $places;
+    return $places; //return (id_place, numero, etat(libre/occupée), mienne(true/false))
 }
 ?>

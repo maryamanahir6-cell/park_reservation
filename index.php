@@ -1,6 +1,6 @@
 <?php
 session_start();
-$estConnecte = isset($_SESSION['utilisateur_id']);
+$estConnecte = isset($_SESSION['utilisateur_id']); //true si l'utilisateur est connecte
 $nomUtilisateur = $_SESSION['identifiant'] ?? '';
 ?>
 <!DOCTYPE html>
@@ -27,7 +27,7 @@ $nomUtilisateur = $_SESSION['identifiant'] ?? '';
     </header>
 
     <main class="layout-container">
-        <!-- Colonne gauche : connexion / espace client -->
+        <!-- Colonne gauche : connexion / espace client (historique des réservations) -->
         <?php include 'IHM/c_gauche.php'; ?>
 
         <!-- Colonne droite : plan du parking + pop-up de réservation -->
@@ -35,8 +35,8 @@ $nomUtilisateur = $_SESSION['identifiant'] ?? '';
     </main>
 
     <script>
-        // Injection de la variable d'état PHP vers le JS
-        window.estConnecte = <?= $estConnecte ? 'true' : 'false' ?>;
+        // variable d'état PHP vers le JS, si false, on deconnecte l'utilisateur et on le redirige vers la page de connexion
+        window.estConnecte = <?= $estConnecte ? 'true' : 'false' ?>; 
     </script>
     <script src="js/app.js"></script>
 </body>
