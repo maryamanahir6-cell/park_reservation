@@ -3,9 +3,11 @@ session_start();
 require '../BD/bd.php';
 
 header("Content-Type: application/json; charset=UTF-8");
-
-$identifiant = $_POST['identifiant'] ?? '';
-$motDePasse = $_POST['mot_de_passe'] ?? '';
+// Récupération des données JSON envoyées depuis le front-end 
+//le php://input est un flux qui permet de lire les données brutes envoyées dans le corps de la requête HTTP.
+$donnees = json_decode(file_get_contents("php://input"), true);
+$identifiant = $donnees['identifiant'] ?? '';
+$motDePasse = $donnees['mot_de_passe'] ?? '';
 
 if (empty($identifiant) || empty($motDePasse)) {
     echo json_encode(["succes" => false, "message" => "Veuillez remplir tous les champs."]);

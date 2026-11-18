@@ -9,7 +9,7 @@ $nomUtilisateur = $_SESSION['identifiant'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestion du Parking en Temps Réel</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=<?= filemtime(__DIR__ . '/css/style.css') ?>">
 </head>
 <body>
 
@@ -38,6 +38,10 @@ $nomUtilisateur = $_SESSION['identifiant'] ?? '';
         // variable d'état PHP vers le JS, si false, on deconnecte l'utilisateur et on le redirige vers la page de connexion
         window.estConnecte = <?= $estConnecte ? 'true' : 'false' ?>; 
     </script>
-    <script src="js/app.js"></script>
+    <script src="js/common.js?v=<?= filemtime(__DIR__ . '/js/common.js') ?>"></script>
+    <script src="js/account.js?v=<?= filemtime(__DIR__ . '/js/account.js') ?>"></script>
+    <script src="js/parking.js?v=<?= filemtime(__DIR__ . '/js/parking.js') ?>"></script>
+    <script src="js/reservation.js?v=<?= filemtime(__DIR__ . '/js/reservation.js') ?>"></script>
+    <script src="js/main.js?v=<?= filemtime(__DIR__ . '/js/main.js') ?>"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/bd.php';
 
 function recupererPlacesAvecEtat($pdo, $idUtilisateur = 0) {
+    // Prépare la requête qui retourne l'état des places et les réservations de l'utilisateur connecté.
     $sql = "SELECT p.id, p.numero,
                    CASE
                        WHEN EXISTS (
@@ -21,13 +22,13 @@ function recupererPlacesAvecEtat($pdo, $idUtilisateur = 0) {
             FROM places p
             ORDER BY p.id"; //select 1 returns true if the subquery returns any rows, otherwise false. 
 
-    $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare($sql); // Prépare la requête SQL
     $stmt->execute(['u1' => (int)$idUtilisateur, 'u2' => (int)$idUtilisateur]);
     $places = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère toutes les places avec leur état et si elles appartiennent à l'utilisateur
 
     foreach ($places as &$p) { // Convertit le champ 'mienne' (0 ou 1) en booléen
         $p['mienne'] = (bool)$p['mienne'];
     }
-    return $places; //return (id_place, numero, etat(libre/occupée), mienne(true/false))
+    return $places; // Retourne id, numero, etat et mienne pour chaque place.
 }
 ?>
